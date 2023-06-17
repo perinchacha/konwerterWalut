@@ -3,4 +3,7 @@
     if (!$polaczenie) {
         die('Nie można połączyć się z bazą danych: ' . mysqli_connect_error());
     }
+    //6574654
 ?>
+
+

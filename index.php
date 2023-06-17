@@ -1,4 +1,5 @@
 <?php
+//6574654
 function pobierzIKopiujKursyWalut()
 {
     require'conn.php';
