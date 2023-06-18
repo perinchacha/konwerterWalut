@@ -172,6 +172,11 @@
     generujHistoriePrzewalutowania();
 
     ?>
+
+    <footer>
+        <br>
+        <p>Autor: Szymon Dejko <a href="https://github.com/perinchacha">Github</a> </p>
+    </footer>
 </body>
 
 </html>
