@@ -8,6 +8,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $walutaZrodlowa = $_POST['waluta_zrodlowa'];
     $walutaDocelowa = $_POST['waluta_docelowa'];
 
+    // pobranie danych z bazy 
     $zapytanie = "SELECT `kurs` FROM `tabela_kursow` WHERE `kod_waluty`= '$walutaZrodlowa'";
     $kursWalutyZrodlowej = mysqli_query($polaczenie, $zapytanie);
 
@@ -18,14 +19,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     zapiszKwote($kwota, $walutaZrodlowa, $walutaDocelowa, $wynikPrzewalutwania);
 
     echo $kwota . " " . $walutaZrodlowa . " po przewalutwaniu to : " . $wynikPrzewalutwania . " " . $walutaDocelowa;
-
     echo '<br> </br><br></br> <a href="index.php"><button>Przejdź do strony głównej</button></a>';
 }
-
-
 function przewalutujKwote($kwota, $kursWalutyZrodlowej, $kursWalutyDocelowej)
 {
-
     $wiersz = $kursWalutyZrodlowej->fetch_assoc();
     $kursWalutyZrodlowejLiczba = $wiersz['kurs'];
 
@@ -35,14 +32,10 @@ function przewalutujKwote($kwota, $kursWalutyZrodlowej, $kursWalutyDocelowej)
     $wynikPrzewalutwania = $kwota * $kursWalutyZrodlowejLiczba / $kursWalutyDocelowejLiczba;
     return $wynikPrzewalutwania;
 }
-
-
 function zapiszKwote($kwota, $walutaZrodlowa, $walutaDocelowa, $wynikPrzewalutwania)
 {
+    require 'conn.php';
+    $sql = "INSERT INTO historia (waluta_zrodlowa, waluta_docelowa, kwota_zrodlowa, kwota_przewalutowana) VALUES ('$walutaZrodlowa', '$walutaDocelowa', '$kwota', '$wynikPrzewalutwania')";
+    mysqli_query($polaczenie, $sql);
 }
-
-$sql = "INSERT INTO historia (waluta_zrodlowa, waluta_docelowa, kwota_zrodlowa, kwota_przewalutowana) VALUES ('$walutaZrodlowa', '$walutaDocelowa', '$kwota', '$wynikPrzewalutwania')";
-mysqli_query($polaczenie, $sql);
-
-
 ?>
