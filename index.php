@@ -31,9 +31,7 @@
             $dataa = date('Y-m-d');
 
             // Aktualizuj kurs waluty w bazie danych na podstawie kodu waluty i daty
-            $zapytanie = "UPDATE tabela_kursow 
-            SET kurs = ?, data_aktualna = ?
-            WHERE kod_waluty = ?";
+            $zapytanie = "UPDATE tabela_kursow SET kurs = ?, data_aktualna = ? WHERE kod_waluty = ?";
 
             $stmt = $polaczenie->prepare($zapytanie);
             $stmt->bind_param("dss", $kurs_sredni, $dataa, $kod_waluty);
@@ -42,9 +40,22 @@
             if (!$wynik) {
                 echo 'Błąd podczas zapisywania kursu waluty: ' . $stmt->error;
             }
+
+            //aktualizacja daty PLN
+            $dataa = date('Y-m-d');
+            $zapytanie_pln = "UPDATE tabela_kursow SET data_aktualna = ? WHERE kod_waluty = 'PLN'";
+
+            $stmt_pln = $polaczenie->prepare($zapytanie_pln);
+            $stmt_pln->bind_param("s", $dataa);
+            $wynik_pln = $stmt_pln->execute();
+
+            if (!$wynik_pln) {
+                echo 'Błąd podczas zapisywania kursu waluty: ' . $stmt->error;
+            }
         }
 
         // Zakończenie połączenia z bazą danych
+        $stmt_pln->close();
         $stmt->close();
         $polaczenie->close();
     }
@@ -65,7 +76,7 @@
                 <tr>
                     <th>Kod Waluty</th>
                     <th>Nazwa Waluty</th>
-                    <th>Kurs</th>
+                    <th>Kurs [PLN]</th>
                     <th>Data</th>
                 </tr>';
 
@@ -103,6 +114,7 @@
                 echo '<option value="' . htmlspecialchars($row['kod_waluty']) . '">' . htmlspecialchars($row['kod_waluty']) . '</option>';
             }
         }
+
         echo '</select>';
         echo '<label>Waluta docelowa:</label>';
         echo '<select name="waluta_docelowa" required>';
@@ -138,6 +150,7 @@
                     <th>Waluta Źródłowa</th>
                     <th>Kwota Przewalutowana</th>
                     <th>Waluta Docelowa</th>
+                    <th>Data</th>
                 </tr>';
 
             while ($row = mysqli_fetch_assoc($result)) {
@@ -146,6 +159,7 @@
                 echo '<td>' . htmlspecialchars($row['waluta_zrodlowa']) . '</td>';
                 echo '<td>' . htmlspecialchars($row['kwota_przewalutowana']) . '</td>';
                 echo '<td>' . htmlspecialchars($row['waluta_docelowa']) . '</td>';
+                echo '<td>' . htmlspecialchars($row['data']) . '</td>';
                 echo '</tr>';
             }
             echo '</table>';
