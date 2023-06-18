@@ -1,8 +1,13 @@
+<head>
+    <meta charset="UTF-8">
+    <title>Iwtymsek logowanie</title>
+    <link rel="stylesheet" type="text/css" href="style.css">
+</head>
 <?php
 function pobierzIKopiujKursyWalut()
 {
-    require'conn.php';
-  
+    require 'conn.php';
+
     // Pobieranie kursów walut z NBP
     $url = 'http://api.nbp.pl/api/exchangerates/tables/A?format=json';
     $json = file_get_contents($url);
@@ -20,12 +25,12 @@ function pobierzIKopiujKursyWalut()
         // $nazwa_waluty = $kurs['currency'];
         $kurs_sredni = $kurs['mid'];
         $dataa = date('Y-m-d');
-        
-       // Aktualizuj kurs waluty w bazie danych na podstawie kodu waluty i daty
+
+        // Aktualizuj kurs waluty w bazie danych na podstawie kodu waluty i daty
         $zapytanie = "UPDATE tabela_kursow 
         SET kurs = '$kurs_sredni', data_aktualna = '$dataa'
         WHERE kod_waluty = '$kod_waluty'";
-                     
+
         $wynik = mysqli_query($polaczenie, $zapytanie);
 
         if (!$wynik) {
@@ -38,11 +43,12 @@ function pobierzIKopiujKursyWalut()
 }
 
 
-function generujTabeleKursowWalut() {
+function generujTabeleKursowWalut()
+{
 
-    require'conn.php';
+    require 'conn.php';
 
-  
+
     // Zapytanie SQL do pobrania danych z tabeli tabela_kursow
     $zapytanie = "SELECT * FROM tabela_kursow ORDER BY kod_waluty ASC";
     $wynik = mysqli_query($polaczenie, $zapytanie);
@@ -74,9 +80,10 @@ function generujTabeleKursowWalut() {
     // Zakończenie połączenia z bazą danych
     mysqli_close($polaczenie);
 }
-function generujFormularzPrzewalutowania() {
+function generujFormularzPrzewalutowania()
+{
 
-    require'conn.php';
+    require 'conn.php';
 
     $sql = "SELECT kod_waluty FROM tabela_kursow ORDER BY kod_waluty ASC";
     $result = $polaczenie->query($sql);
@@ -96,26 +103,27 @@ function generujFormularzPrzewalutowania() {
     echo '</select>';
     echo '<label>Waluta docelowa:</label>';
     echo '<select name="waluta_docelowa" required>';
-    
+
     if ($result->num_rows > 0) {
         while ($row = $result2->fetch_assoc()) {
             echo '<option value="' . $row['kod_waluty'] . '">' . $row['kod_waluty'] . '</option>';
         }
     }
-    
+
     echo '</select>';
     echo '<input type="submit" value="Przewalutuj">';
     echo '</form>';
 }
 
 
-function generujHistoriePrzewalutowania() {
+function generujHistoriePrzewalutowania()
+{
 
-    require'conn.php';
+    require 'conn.php';
 
     $sql = "SELECT * FROM historia ORDER BY data DESC ";
     $result = $polaczenie->query($sql);
-    
+
     if (!$result) {
         echo 'Błąd podczas pobierania danych: ' . mysqli_error($polaczenie);
     } else {
@@ -139,8 +147,6 @@ function generujHistoriePrzewalutowania() {
 
         echo '</table>';
     }
-
-
 }
 
 
@@ -150,5 +156,3 @@ pobierzIKopiujKursyWalut();
 
 generujFormularzPrzewalutowania();
 generujHistoriePrzewalutowania();
-
-
