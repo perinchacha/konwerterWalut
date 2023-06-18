@@ -9,55 +9,63 @@
 
 <body>
     <?php
-    function pobierzIKopiujKursyWalut()
+
+    class KursyWalut
     {
-        require 'conn.php';
-        // Pobieranie kursów walut z NBP
-        $url = 'http://api.nbp.pl/api/exchangerates/tables/A?format=json';
-        $json = file_get_contents($url);
-        $dane = json_decode($json, true);
+        private $polaczenie;
 
-        if ($dane === null) {
-            die('Błąd podczas pobierania danych z NBP.');
+        public function __construct()
+        {
+            require 'conn.php';
+            $this->polaczenie = $polaczenie;
         }
 
-        // Przetwarzanie i zapisywanie kursów walut do bazy danych
-        $tabela_kursow = $dane[0]['rates'];
+        public function pobierzIKopiujKursyWalut()
+        {
+            // Pobieranie kursów walut z NBP
+            $url = 'http://api.nbp.pl/api/exchangerates/tables/A?format=json';
+            $json = file_get_contents($url);
+            $dane = json_decode($json, true);
 
-        foreach ($tabela_kursow as $kurs) {
-            $kod_waluty = $kurs['code'];
-            // $nazwa_waluty = $kurs['currency'];
-            $kurs_sredni = $kurs['mid'];
-            $dataa = date('Y-m-d');
-
-            // Aktualizuj kurs waluty w bazie danych na podstawie kodu waluty i daty
-            $zapytanie = "UPDATE tabela_kursow SET kurs = ?, data_aktualna = ? WHERE kod_waluty = ?";
-
-            $stmt = $polaczenie->prepare($zapytanie);
-            $stmt->bind_param("dss", $kurs_sredni, $dataa, $kod_waluty);
-            $wynik = $stmt->execute();
-
-            if (!$wynik) {
-                echo 'Błąd podczas zapisywania kursu waluty: ' . $stmt->error;
+            if ($dane === null) {
+                die('Błąd podczas pobierania danych z NBP.');
             }
 
-            //aktualizacja daty PLN
-            $dataa = date('Y-m-d');
-            $zapytanie_pln = "UPDATE tabela_kursow SET data_aktualna = ? WHERE kod_waluty = 'PLN'";
+            // Przetwarzanie i zapisywanie kursów walut do bazy danych
+            $tabela_kursow = $dane[0]['rates'];
 
-            $stmt_pln = $polaczenie->prepare($zapytanie_pln);
-            $stmt_pln->bind_param("s", $dataa);
-            $wynik_pln = $stmt_pln->execute();
+            foreach ($tabela_kursow as $kurs) {
+                $kod_waluty = $kurs['code'];
+                $kurs_sredni = $kurs['mid'];
+                $dataa = date('Y-m-d');
 
-            if (!$wynik_pln) {
-                echo 'Błąd podczas zapisywania kursu waluty: ' . $stmt->error;
+                // Aktualizuj kurs waluty w bazie danych na podstawie kodu waluty i daty
+                $zapytanie = "UPDATE tabela_kursow SET kurs = ?, data_aktualna = ? WHERE kod_waluty = ?";
+
+                $stmt = $this->polaczenie->prepare($zapytanie);
+                $stmt->bind_param("dss", $kurs_sredni, $dataa, $kod_waluty);
+                $wynik = $stmt->execute();
+
+                if (!$wynik) {
+                    echo 'Błąd podczas zapisywania kursu waluty: ' . $stmt->error;
+                }
+
+                // Aktualizacja daty PLN
+                $zapytanie_pln = "UPDATE tabela_kursow SET data_aktualna = ? WHERE kod_waluty = 'PLN'";
+
+                $stmt_pln = $this->polaczenie->prepare($zapytanie_pln);
+                $stmt_pln->bind_param("s", $dataa);
+                $wynik_pln = $stmt_pln->execute();
+
+                if (!$wynik_pln) {
+                    echo 'Błąd podczas zapisywania kursu waluty: ' . $stmt_pln->error;
+                }
             }
+
+            // Zakończenie połączenia z bazą danych
+            $stmt_pln->close();
+            $stmt->close();
         }
-
-        // Zakończenie połączenia z bazą danych
-        $stmt_pln->close();
-        $stmt->close();
-        $polaczenie->close();
     }
 
     function generujTabeleKursowWalut()
@@ -168,7 +176,8 @@
 
     generujFormularzPrzewalutowania();
     generujTabeleKursowWalut();
-    pobierzIKopiujKursyWalut();
+    $kursyWalut = new KursyWalut();
+    $kursyWalut->pobierzIKopiujKursyWalut();
     generujHistoriePrzewalutowania();
 
     ?>
